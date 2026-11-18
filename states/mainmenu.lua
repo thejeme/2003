@@ -1,3 +1,4 @@
+local display = require 'lib/display'
 require 'objects/button'
 
 local menuparticles = require 'objects/menuparticles'
@@ -18,15 +19,11 @@ function mainmenu:load()
 
   mainLogoButton = newButton(gw / 2-330-15, gh / 2 - 130, 180, "2003", "", true, Lavender, White, 0, -34)
   mainPlayButton = newButton(gw / 2-100, gh / 2 + 85, 150, "Play", "", false, Green, White, 0, -23, function() menuState = "levels" end, function() menuState = "levels" end)
-  mainOptionsButton = newButton(gw / 2+130, gh / 2 - 85, 150, "Options", "", false, Blue, White, 0, -23, function() menuState = "options" end, function() menuState = "options" end)
+  mainOptionsButton = newButton(gw / 2+130, gh / 2 - 85, 150, "Options", "", false, Blue, White, 0, -23, function() mainmenu:openOptions() end, function() mainmenu:openOptions() end)
   mainExitButton = newButton(gw / 2+360, gh / 2 + 85, 150, "Exit", "", false, Red, White, 0, -23, function() love.event.quit() end, function() love.event.quit() end)
 
   optionsLogoButton = newButton(gw / 2-330-15, gh / 2 - 130, 180, "Options", "", true, Lavender, White, 0, -34)
-  if (resolutionIndex == 8) then
-    optionsResolutionButton = newButton(gw / 2-100, gh / 2 + 85, 150, "Resolution", "Fullscreen", false, Green, White, 0, -23, function() mainmenu:changeResolution(1) end, function() mainmenu:changeResolution(-1) end)
-  else
-    optionsResolutionButton = newButton(gw / 2-100, gh / 2 + 85, 150, "Resolution", resolutionList[resolutionIndex][1] .." x " .. resolutionList[resolutionIndex][2], false, Green, White, 0, -23, function() mainmenu:changeResolution(1) end, function() mainmenu:changeResolution(-1) end)
-  end
+  optionsResolutionButton = newButton(gw / 2-100, gh / 2 + 85, 150, "Resolution", display.label(), false, Green, White, 0, -23, function() mainmenu:changeResolution(1) end, function() mainmenu:changeResolution(-1) end)
   optionsVolumeButton = newButton(gw / 2+130, gh / 2 - 85, 150, "Volume", volumeValue .. "%", false, Blue, White, 0, -23, function() mainmenu:changeVolume(5) end, function() mainmenu:changeVolume(-5) end)
   optionsBackButton = newButton(gw / 2+360, gh / 2 + 85, 150, "Back", "", false, Red, White, 0, -23, function() mainmenu:saveSettings() menuState = "main" end, function() mainmenu:saveSettings() menuState = "main" end)
 
@@ -55,17 +52,18 @@ function mainmenu:startLevel(index)
   maingame:loadLevel(index)
 end
 
+function mainmenu:openOptions()
+  display.refresh(display.width())
+  optionsResolutionButton:setAltText(display.label())
+  menuState = "options"
+end
+
 function mainmenu:saveSettings()
-  savemanager:saveSettings(resolutionIndex, volumeValue)
-  if (changedResolution) then
+  if changedResolution then
+    display.apply()
     changedResolution = false
-    if resolutionList[resolutionIndex][1] == 0 and resolutionList[resolutionIndex][2] == 0 then
-      isFullScreen = true
-    else
-      isFullScreen = false
-    end
-    simpleScale.updateWindow(resolutionList[resolutionIndex][1], resolutionList[resolutionIndex][2], {fullscreen=isFullScreen})
   end
+  savemanager:saveSettings(display.width(), volumeValue)
 end
 
 function mainmenu:update(dt)
@@ -131,6 +129,7 @@ end
 function mainmenu:keypressed(key)
   if (menuState == "options") then
     if (key == "escape") then
+      self:saveSettings()
       menuState = "main"
     end
   elseif (menuState == "levels") then
@@ -141,18 +140,10 @@ function mainmenu:keypressed(key)
 end
 
 function mainmenu:changeResolution(value)
+  if webBuild then return end
+  display.cycle(value)
   changedResolution = true
-  resolutionIndex = resolutionIndex + value
-  if (resolutionIndex < 1) then
-    resolutionIndex = #resolutionList
-  elseif (resolutionIndex > #resolutionList) then
-    resolutionIndex = 1
-  end
-  if (resolutionIndex == 8) then
-    optionsResolutionButton:setAltText("Fullscreen")
-  else
-    optionsResolutionButton:setAltText(resolutionList[resolutionIndex][1] .." x " .. resolutionList[resolutionIndex][2])
-  end
+  optionsResolutionButton:setAltText(display.label())
 end
 
 function mainmenu:changeVolume(value)

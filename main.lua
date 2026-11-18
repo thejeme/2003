@@ -1,4 +1,5 @@
 require 'lib/simpleScale'
+local display = require 'lib/display'
 
 require 'globals'
 require 'colors'
@@ -25,16 +26,9 @@ function love.load()
   savemanager:load()
   cursor:load()
   volumeValue = savemanager.settings.volume or 100
-  resolutionIndex = savemanager.settings.resolutionIndex or 8
+  display.load(savemanager.settings)
   statemanager:load()
-  if resolutionList[resolutionIndex][1] == 0 and resolutionList[resolutionIndex][2] == 0 then
-    isFullScreen = true
-  else
-    isFullScreen = false
-  end
-  simpleScale.setWindow(gw, gh, resolutionList[resolutionIndex][1], resolutionList[resolutionIndex][2], {fullscreen = isFullScreen})
   mx, my = simpleScale.toGame(love.mouse.getPosition())
-  if not webBuild then love.window.setVSync(1) end
   love.mouse.setVisible(false)
 
   if discordRPC then discordRPC.initialize(appId, true) end
