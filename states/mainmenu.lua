@@ -20,12 +20,21 @@ function mainmenu:load()
   mainLogoButton = newButton(gw / 2-330-15, gh / 2 - 130, 180, "2003", "", true, Lavender, White, 0, -34)
   mainPlayButton = newButton(gw / 2-100, gh / 2 + 85, 150, "Play", "", false, Green, White, 0, -23, function() menuState = "levels" end, function() menuState = "levels" end)
   mainOptionsButton = newButton(gw / 2+130, gh / 2 - 85, 150, "Options", "", false, Blue, White, 0, -23, function() mainmenu:openOptions() end, function() mainmenu:openOptions() end)
-  mainExitButton = newButton(gw / 2+360, gh / 2 + 85, 150, "Exit", "", false, Red, White, 0, -23, function() love.event.quit() end, function() love.event.quit() end)
+  if not webBuild then
+    mainExitButton = newButton(gw / 2+360, gh / 2 + 85, 150, "Exit", "", false, Red, White, 0, -23, function() love.event.quit() end, function() love.event.quit() end)
+  end
 
   optionsLogoButton = newButton(gw / 2-330-15, gh / 2 - 130, 180, "Options", "", true, Lavender, White, 0, -34)
-  optionsResolutionButton = newButton(gw / 2-100, gh / 2 + 85, 150, "Resolution", display.label(), false, Green, White, 0, -23, function() mainmenu:changeResolution(1) end, function() mainmenu:changeResolution(-1) end)
+  if not webBuild then
+    optionsResolutionButton = newButton(gw / 2-100, gh / 2 + 85, 150, "Resolution", display.label(), false, Green, White, 0, -23, function() mainmenu:changeResolution(1) end, function() mainmenu:changeResolution(-1) end)
+  end
   optionsVolumeButton = newButton(gw / 2+130, gh / 2 - 85, 150, "Volume", volumeValue .. "%", false, Blue, White, 0, -23, function() mainmenu:changeVolume(5) end, function() mainmenu:changeVolume(-5) end)
   optionsBackButton = newButton(gw / 2+360, gh / 2 + 85, 150, "Back", "", false, Red, White, 0, -23, function() mainmenu:saveSettings() menuState = "main" end, function() mainmenu:saveSettings() menuState = "main" end)
+
+  if webBuild then
+    optionsVolumeButton.x, optionsVolumeButton.y = mainPlayButton.x, mainPlayButton.y
+    optionsBackButton.x, optionsBackButton.y = mainOptionsButton.x, mainOptionsButton.y
+  end
 
   levelsLogoButton = newButton(gw / 2-330-15, gh / 2 - 130, 180, "Levels", "", true, Lavender, White, 0, -34)
   Levels1Button = newButton(gw / 2-100, gh / 2 + 85, 150, "Super", savemanager.highscores.levelScore[1] .. "%", false, Green, White, 0, -23, function() mainmenu:startLevel(1) end, function() mainmenu:startLevel(1) end)
@@ -53,8 +62,10 @@ function mainmenu:startLevel(index)
 end
 
 function mainmenu:openOptions()
-  display.refresh(display.width())
-  optionsResolutionButton:setAltText(display.label())
+  if optionsResolutionButton then
+    display.refresh(display.width())
+    optionsResolutionButton:setAltText(display.label())
+  end
   menuState = "options"
 end
 
@@ -71,9 +82,9 @@ function mainmenu:update(dt)
   if (menuState == "main") then
     mainPlayButton:update(dt)
     mainOptionsButton:update(dt)
-    mainExitButton:update(dt)
+    if mainExitButton then mainExitButton:update(dt) end
   elseif (menuState == "options") then
-    optionsResolutionButton:update(dt)
+    if optionsResolutionButton then optionsResolutionButton:update(dt) end
     optionsVolumeButton:update(dt)
     optionsBackButton:update(dt)
   elseif (menuState == "levels") then
@@ -93,10 +104,10 @@ function mainmenu:draw()
     mainLogoButton:draw()
     mainPlayButton:draw()
     mainOptionsButton:draw()
-    mainExitButton:draw()
+    if mainExitButton then mainExitButton:draw() end
   elseif (menuState == "options") then
     optionsLogoButton:draw()
-    optionsResolutionButton:draw()
+    if optionsResolutionButton then optionsResolutionButton:draw() end
     optionsVolumeButton:draw()
     optionsBackButton:draw()
   elseif (menuState == "levels") then
@@ -113,9 +124,9 @@ function mainmenu:mousepressed(x, y, button)
   if (menuState == "main") then
     mainPlayButton:mousepressed(x, y, button)
     mainOptionsButton:mousepressed(x, y, button)
-    mainExitButton:mousepressed(x, y, button)
+    if mainExitButton then mainExitButton:mousepressed(x, y, button) end
   elseif (menuState == "options") then
-    optionsResolutionButton:mousepressed(x, y, button)
+    if optionsResolutionButton then optionsResolutionButton:mousepressed(x, y, button) end
     optionsVolumeButton:mousepressed(x, y, button)
     optionsBackButton:mousepressed(x, y, button)
   elseif (menuState == "levels") then

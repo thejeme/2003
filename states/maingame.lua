@@ -21,7 +21,7 @@ function maingame:load()
   pauseContinueButton = newButton(gw / 2-100, gh / 2 + 85, 150, "Continue", "", false, Green, White, 0, -23, function() maingame:pause() end, function() maingame:pause() end)
   pauseProgressButton = newButton(gw / 2-100, gh / 2 + 85, 150, "", "", false, Green, White, 0, -23)
   pauseRestartButton = newButton(gw / 2+130, gh / 2 - 85, 150, "Restart", "", false, Blue, White, 0, -23, function() maingame:restart() end, function() maingame:restart() end)
-  pauseQuitButton = newButton(gw / 2+360, gh / 2 + 85, 150, "Quit", "", false, Red, White, 0, -23, function() maingame:endLevel() end, function() maingame:endLevel() end)
+  pauseQuitButton = newButton(gw / 2+360, gh / 2 + 85, 150, webBuild and "Levels" or "Quit", "", false, Red, White, 0, -23, function() maingame:endLevel() end, function() maingame:endLevel() end)
 
   circlehitsound = audio:newSource("assets/circlehit.wav", "stream")
   circlehitsound:setVolume(volumeValue * 0.001)
