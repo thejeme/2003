@@ -3,7 +3,6 @@ require 'objects/button'
 
 local menuparticles = require 'objects/menuparticles'
 
-local audio = require "lib/wave"
 
 mainmenu = {}
 
@@ -42,13 +41,13 @@ function mainmenu:load()
   Levels3Button = newButton(gw / 2+360, gh / 2 + 85, 150, "Ultra", savemanager.highscores.levelScore[3] .. "%", false, Red, White, 0, -23, function() mainmenu:startLevel(3) end, function() mainmenu:startLevel(3) end)
   Levels4Button = newButton(gw / 2+590, gh / 2 - 85, 150, "Extreme", savemanager.highscores.levelScore[4] .. "%", false, Purple, White, 0, -23, function() mainmenu:startLevel(4) end, function() mainmenu:startLevel(4) end)
 
-  buttonhover = audio:newSource("assets/buttonhover.wav", "stream")
+  buttonhover = love.audio.newSource("assets/buttonhover.wav", "static")
   buttonhover:setVolume(volumeValue * 0.001)
 
-  buttonhit = audio:newSource("assets/buttonhit.wav", "stream")
+  buttonhit = love.audio.newSource("assets/buttonhit.wav", "static")
   buttonhit:setVolume(volumeValue * 0.001)
 
-  menumusic = audio:newSource("songs/OcularNebula - Pulsar.mp3", "stream")
+  menumusic = love.audio.newSource("songs/OcularNebula - Pulsar.mp3", "stream")
   menumusic:setVolume(volumeValue * 0.001)
   menumusic:setLooping(true)
   menumusic:play()

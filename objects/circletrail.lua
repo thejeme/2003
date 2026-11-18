@@ -1,26 +1,48 @@
-local circletrail = {}
+local trail = {}
+trail.__index = trail
 
-function circletrail:new(x, y, r, g, b)
-	local p = {}
-	self.__index = self
-	p.x = x
-	p.y = y
-	p.r = r
-	p.g = g
-	p.b = b
-	p.size = 24
-	p.alpha = 1
-	return setmetatable(p, circletrail)
+local interval = 1 / 60
+local capacity = math.ceil((1 / 6) / interval) + 1
+
+function trail.new()
+  local samples = {}
+  for i = 1, capacity do samples[i] = {} end
+  return setmetatable({samples = samples, next = 1, elapsed = 0, time = 0}, trail)
 end
 
-function circletrail:update(dt)
-	self.size = self.size - 1 * dt
-	self.alpha = self.alpha - 6 * dt
+function trail:update(dt, x, y)
+  local lastX, lastY = self.x or x, self.y or y
+  self.x, self.y = x, y
+  self.time = self.time + dt
+  self.elapsed = self.elapsed + dt
+  -- Skip samples that would already have expired after a long frame.
+  if self.elapsed > (1 / 6) + interval then
+    self.elapsed = (1 / 6) + self.elapsed % interval
+  end
+  while self.elapsed + 1e-9 >= interval do
+    self.elapsed = math.max(0, self.elapsed - interval)
+    local age = self.elapsed
+    local fraction = dt > 0 and math.max(0, 1 - age / dt) or 1
+    local sample = self.samples[self.next]
+    sample.x = lastX + (x - lastX) * fraction
+    sample.y = lastY + (y - lastY) * fraction
+    sample.time = self.time - age
+    self.next = self.next % capacity + 1
+  end
 end
 
-function circletrail:draw()
-	love.graphics.setColor(self.r, self.g, self.b, self.alpha)
-	love.graphics.circle('fill', self.x, self.y, self.size)
+function trail:draw(r, g, b)
+  for offset = 0, capacity - 1 do
+    local sample = self.samples[(self.next - 1 + offset) % capacity + 1]
+    if sample.time then
+      local age = self.time - sample.time
+      local alpha = 1 - age * 6
+      if alpha > 0 then
+        love.graphics.setColor(r, g, b, alpha)
+        love.graphics.circle("fill", sample.x, sample.y, 24 - age * 1)
+      end
+    end
+  end
 end
 
-return circletrail
+return trail

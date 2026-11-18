@@ -73,6 +73,12 @@ function love.update(dt)
   if discordRPC then discordRPC.runCallbacks() end
 end
 
+function love.focus(focused)
+  if not focused and statemanager:getState() == "game" then
+    maingame:pauseForInterruption()
+  end
+end
+
 function love.draw()
 	simpleScale.set()
     statemanager:draw()

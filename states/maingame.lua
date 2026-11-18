@@ -1,10 +1,14 @@
 require 'objects/circle'
 
-local audio = require "lib/wave"
-
 maingame = {}
 
 local levelIndex, timer, notesPassed, isPause, isFailed, isWin
+local maxFrameTime = 0.1
+local maxStep = 1 / 120
+
+function maingame:pauseForInterruption()
+  if self:isPlaying() then self:pause() end
+end
 
 function maingame:load()
   levelSongs = {love.audio.newSource("songs/DJ Okawari - Flower Dance.mp3", "stream"),
@@ -23,14 +27,19 @@ function maingame:load()
   pauseRestartButton = newButton(gw / 2+130, gh / 2 - 85, 150, "Restart", "", false, Blue, White, 0, -23, function() maingame:restart() end, function() maingame:restart() end)
   pauseQuitButton = newButton(gw / 2+360, gh / 2 + 85, 150, webBuild and "Levels" or "Quit", "", false, Red, White, 0, -23, function() maingame:endLevel() end, function() maingame:endLevel() end)
 
-  circlehitsound = audio:newSource("assets/circlehit.wav", "stream")
+  circlehitsound = love.audio.newSource("assets/circlehit.wav", "static")
   circlehitsound:setVolume(volumeValue * 0.001)
 
-  failsound = audio:newSource("assets/fail.wav", "stream")
+  failsound = love.audio.newSource("assets/fail.wav", "static")
   failsound:setVolume(volumeValue * 0.001)
 end
 
 function maingame:update(dt)
+  if dt > maxFrameTime then
+    self:pauseForInterruption()
+    dt = 0
+  end
+
   if isWin then
     pauseRestartButton:update(dt)
     pauseQuitButton:update(dt)
@@ -41,55 +50,65 @@ function maingame:update(dt)
   elseif isFailed then
     pauseRestartButton:update(dt)
     pauseQuitButton:update(dt)
-  elseif not isPause and not isFailed and not isWin then
-    timer = timer + dt
-    if timer/maingame:getLevelLength() > 1 then
-      maingame:win()
-    elseif (#listOfCircles == 0 and timer > 0.2) then
-      local x
-      local speed
-      if (levelIndex == 1) then
-        if (notesPassed%2==0) then
-          x = math.random(2,5)
-          speed = 1000
-        else
-          x = math.random(-5,-2)
-          speed = -1000
-        end
-        createCircle(x, speed)
-      elseif (levelIndex == 2) then
-        if (math.random() < 0.5) then
-          x = math.random(2,5)
-          speed = 1150
-        else
-          x = math.random(-5,-2)
-          speed = -1150
-        end
-        createCircle(-x, speed)
-      elseif (levelIndex == 3) then
-        x = math.random(2,5)
-        if (math.random() < 0.5) then
-          x = x*-1
-        end
-        createCircle(x, -1300)
-      elseif (levelIndex == 4) then
-        x = math.random(3,5)
-        if (math.random() < 0.5) then
-          x = x*-1
-        end
-        if (math.random() < 0.5) then
-          createCircle(x, 1700)
-        else
-          createCircle(x, -1700)
-        end
+  else
+    local steps = math.max(1, math.ceil(dt / maxStep))
+    local step = dt / steps
+    for _ = 1, steps do
+      timer = timer + step
+      if timer >= self:getLevelLength() then
+        self:win()
+        return
       end
+      if #listOfCircles == 0 and timer > 0.2 then self:spawnNote() end
+      circle:update(step)
+      if isFailed then return end
     end
-    circle:update(dt)
+  end
+end
+
+function maingame:spawnNote()
+  local x
+  local speed
+  if (levelIndex == 1) then
+    if (notesPassed%2==0) then
+      x = math.random(2,5)
+      speed = 1000
+    else
+      x = math.random(-5,-2)
+      speed = -1000
+    end
+    createCircle(x, speed)
+  elseif (levelIndex == 2) then
+    if (math.random() < 0.5) then
+      x = math.random(2,5)
+      speed = 1150
+    else
+      x = math.random(-5,-2)
+      speed = -1150
+    end
+    createCircle(-x, speed)
+  elseif (levelIndex == 3) then
+    x = math.random(2,5)
+    if (math.random() < 0.5) then
+      x = x*-1
+    end
+    createCircle(x, -1300)
+  elseif (levelIndex == 4) then
+    x = math.random(3,5)
+    if (math.random() < 0.5) then
+      x = x*-1
+    end
+    if (math.random() < 0.5) then
+      createCircle(x, 1700)
+    else
+      createCircle(x, -1700)
+    end
   end
 end
 
 function maingame:win()
   isWin = true
+  timer = self:getLevelLength()
   listOfCircles = {}
   pauseLogoButton:setMainText("Win")
   pauseProgressButton:setAltText("Level Complete!")
@@ -141,33 +160,23 @@ function maingame:LayoutUI()
 end
 
 function maingame:mousepressed(x, y, button)
-  if not isFailed and not isPause and not isWin then
-    if (#listOfCircles > 0) then
-      if (button == 1) then
-        if (math.abs(listOfCircles[1].angle) > math.pi*0.93 and math.abs(listOfCircles[1].angle) < math.pi*1.07) then
-          if (listOfCircles[1].pos > 0) then
-            table.remove(listOfCircles, 1)
-            notesPassed = notesPassed + 1
-            circlehitsound:play()
-          elseif (listOfCircles[1].pos < 0) then
-            maingame:fail()
-          end
-        elseif (math.abs(listOfCircles[1].angle) > math.pi*0.84 and math.abs(listOfCircles[1].angle) < math.pi*0.93) then
-          maingame:fail()
-        end
-      elseif (button == 2) then
-        if (math.abs(listOfCircles[1].angle) > math.pi*0.93 and math.abs(listOfCircles[1].angle) < math.pi*1.07) then
-          if (listOfCircles[1].pos < 0) then
-            table.remove(listOfCircles, 1)
-            notesPassed = notesPassed + 1
-            circlehitsound:play()
-          elseif (listOfCircles[1].pos > 0) then
-            maingame:fail()
-          end
-        elseif (math.abs(listOfCircles[1].angle) > math.pi*0.84 and math.abs(listOfCircles[1].angle) < math.pi*0.93) then
-          maingame:fail()
-        end
+  if self:isPlaying() then
+    local note = listOfCircles[1]
+    if not note or (button ~= 1 and button ~= 2) then return end
+
+    -- Judge the note at the angle the player saw on the last frame.
+    local angle = math.abs(note.angle)
+    if angle >= circle.hitStart and angle <= circle.hitEnd then
+      local expectedButton = note.pos > 0 and 1 or 2
+      if button == expectedButton then
+        table.remove(listOfCircles, 1)
+        notesPassed = notesPassed + 1
+        circlehitsound:play()
+      else
+        self:fail()
       end
+    elseif angle > circle.earlyStart then
+      self:fail()
     end
   elseif isWin then
     pauseRestartButton:mousepressed(x, y, button)
