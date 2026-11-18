@@ -4,7 +4,7 @@ circle = {}
 listOfCircles = {}
 
 function createCircle(pos, speed)
-  c = {}
+  local c = {}
   c.x = 0
   c.y = 0
   if (pos > 0) then
@@ -36,7 +36,7 @@ function circle:update(dt)
     table.insert(v.circletrail, circletrail:new(v.x, v.y, v.r, v.g, v.b))
     for i = #v.circletrail, 1, -1 do
       v.circletrail[i]:update(dt)
-      if v.circletrail[i].size <= 0 then
+      if v.circletrail[i].alpha <= 0 then
         table.remove(v.circletrail, i)
       end
     end

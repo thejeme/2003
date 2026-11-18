@@ -43,7 +43,6 @@ function mainmenu:load()
   buttonhit:setVolume(volumeValue * 0.001)
 
   menumusic = audio:newSource("songs/OcularNebula - Pulsar.mp3", "stream")
-  menumusic:parse()
   menumusic:setVolume(volumeValue * 0.001)
   menumusic:setLooping(true)
   menumusic:play()

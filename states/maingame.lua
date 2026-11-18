@@ -218,41 +218,18 @@ function maingame:progressBar()
   love.graphics.rectangle("fill", 0, gh-10, gw*(timer/maingame:getLevelLength()), 10)
 end
 
+function maingame:isPlaying()
+  return not isFailed and not isPause and not isWin
+end
+
 function maingame:keypressed(key)
   if key == "r" and (isFailed or isPause) then
-    maingame:restart()
-  end
-  if not isFailed and not isWin then
-    if (key == "escape") then
-      maingame:pause()
-    end
-    if (#listOfCircles > 0) then
-      if (key == "a" or key == "f") then
-        if (math.abs(listOfCircles[1].angle) > math.pi*0.93 and math.abs(listOfCircles[1].angle) < math.pi*1.07) then
-          if (listOfCircles[1].pos > 0) then
-            table.remove(listOfCircles, 1)
-            notesPassed = notesPassed + 1
-            circlehitsound:play()
-          elseif (listOfCircles[1].pos < 0) then
-            maingame:fail()
-          end
-        elseif (math.abs(listOfCircles[1].angle) > math.pi*0.84 and math.abs(listOfCircles[1].angle) < math.pi*0.93) then
-          maingame:fail()
-        end
-      elseif (key == "d" or key == "j") then
-        if (math.abs(listOfCircles[1].angle) > math.pi*0.93 and math.abs(listOfCircles[1].angle) < math.pi*1.07) then
-          if (listOfCircles[1].pos < 0) then
-            table.remove(listOfCircles, 1)
-            notesPassed = notesPassed + 1
-            circlehitsound:play()
-          elseif (listOfCircles[1].pos > 0) then
-            maingame:fail()
-          end
-        elseif (math.abs(listOfCircles[1].angle) > math.pi*0.84 and math.abs(listOfCircles[1].angle) < math.pi*0.93) then
-          maingame:fail()
-        end
-      end
-    end
+    self:restart()
+  elseif key == "escape" and not isFailed and not isWin then
+    self:pause()
+  elseif self:isPlaying() then
+    if key == "a" or key == "f" then self:mousepressed(mx, my, 1) end
+    if key == "d" or key == "j" then self:mousepressed(mx, my, 2) end
   end
 end
 
